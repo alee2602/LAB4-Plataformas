@@ -1,3 +1,9 @@
+//Universidad del Valle de Guatemala
+//Programación de Plataformas Móviles
+//Sección 20
+//Mónica Salvatierra -22249
+
+
 package com.example.lab4ms
 
 import android.os.Bundle
@@ -7,28 +13,29 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.input.ImeAction
-import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.rememberAsyncImagePainter
+import coil.annotation.ExperimentalCoilApi
+import coil.compose.rememberImagePainter
 
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
-            MainScreen()
+            MaterialTheme{
+                MainScreen()
+            }
+
         }
     }
 
@@ -38,6 +45,7 @@ class MainActivity : ComponentActivity() {
         val recipeList = remember { mutableStateListOf<Recipe>() }
         val inputName = remember { mutableStateOf(TextFieldValue()) }
         val inputImageURL= remember { mutableStateOf(TextFieldValue()) }
+
 
         Column(
             modifier= Modifier
@@ -56,10 +64,6 @@ class MainActivity : ComponentActivity() {
                 value = inputImageURL.value,
                 onValueChange = { inputImageURL.value = it },
                 label = { Text("URL de la imagen ") },
-                keyboardOptions = KeyboardOptions.Default.copy(
-                    imeAction = ImeAction.Done, // Puedes cambiarlo según tus necesidades
-                    keyboardType = KeyboardType.Uri
-                ),
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(bottom = 8.dp)
@@ -68,13 +72,13 @@ class MainActivity : ComponentActivity() {
             Button(
                 onClick = {
                     val name = inputName.value.text
-                    val imageUrl = inputImageURL.value.text
+                    val imageUrl = inputImageURL.value.toString()
 
                     if (name.isNotBlank() && imageUrl.isNotBlank()) {
                         recipeList.add(Recipe(name, imageUrl))
-                        inputName.value = TextFieldValue("")
-                        inputImageURL.value = TextFieldValue("")
                     }
+                    inputName.value = TextFieldValue("")
+                    inputImageURL.value = TextFieldValue("")
                 },
                 modifier = Modifier
                     .fillMaxWidth()
@@ -85,12 +89,14 @@ class MainActivity : ComponentActivity() {
             )
 
             LazyColumn {
-                items(recipeList) { recipe ->
+                items(recipeList.toMutableList() ){ recipe ->
                     RecipeCard(recipe)
                 }
             }
         }
     }
+
+    data class Recipe(val name: String, val imageUrl: String)
 
     @Composable
     fun RecipeCard(recipe: Recipe) {
@@ -98,7 +104,7 @@ class MainActivity : ComponentActivity() {
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(bottom = 8.dp),
-            elevation = CardElevation(4.sp)
+            elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
         ) {
             Column (
                 modifier = Modifier
@@ -128,13 +134,6 @@ class MainActivity : ComponentActivity() {
             }
         }
     }
-
-    data class Recipe(val name: String, val imageUrl: String)
-
-    private fun CardElevation(defaultElevation: TextUnit): CardElevation {
-        return CardElevation(defaultElevation)
-    }
-
 
     @Preview(showBackground = true)
     @Composable
