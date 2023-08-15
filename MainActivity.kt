@@ -3,19 +3,20 @@
 //Sección 20
 //Mónica Salvatierra -22249
 
-
 package com.example.lab4ms
 
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
@@ -24,8 +25,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.rememberAsyncImagePainter
-import coil.annotation.ExperimentalCoilApi
-import coil.compose.rememberImagePainter
+import androidx.compose.ui.text.font.FontFamily
 
 
 class MainActivity : ComponentActivity() {
@@ -39,50 +39,84 @@ class MainActivity : ComponentActivity() {
         }
     }
 
+
     @OptIn(ExperimentalMaterial3Api::class)
     @Composable
     fun MainScreen(){
-        val recipeList = remember { mutableStateListOf<Recipe>() }
-        val inputName = remember { mutableStateOf(TextFieldValue()) }
-        val inputImageURL= remember { mutableStateOf(TextFieldValue()) }
 
+        val recipeList = remember { mutableStateListOf<Recipe>() } //Lista que contiene las recetas
+        val inputName = remember { mutableStateOf(TextFieldValue()) } // input para el nombre de la receta
+        val inputImageURL= remember { mutableStateOf(TextFieldValue()) } // input para el url
+        val showError = remember { mutableStateOf(false) } // Validación para mostrar error
 
         Column(
             modifier= Modifier
                 .padding(16.dp)
                 .fillMaxSize()
+                .background(color = Color(android.graphics.Color.parseColor("#463C52")))
         ){
-            TextField(
+            Text( //Añade un título
+                text = "  Recetario  ",
+                style = TextStyle(
+                    fontSize = 40.sp,
+                    fontWeight = FontWeight.Bold,
+                    fontFamily= FontFamily.Serif,
+                    color=Color.White
+
+                ),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = 40.dp, bottom = 16.dp)
+
+            )
+            Spacer(modifier = Modifier.height(16.dp))
+
+            TextField( //Espacio para colocar el nombre de la receta
                 value = inputName.value,
                 onValueChange = { inputName.value = it },
                 label = { Text("Nombre de la receta ") },
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(bottom = 8.dp)
+                    .padding(bottom = 8.dp),
+
             )
-            TextField(
+            TextField( //Espacio para colocar la URL de la imagen
                 value = inputImageURL.value,
                 onValueChange = { inputImageURL.value = it },
                 label = { Text("URL de la imagen ") },
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(bottom = 8.dp)
+
             )
 
-            Button(
+            if (showError.value) { // showError cuando se duplique el nombre de la receta o el usuario no haya puesto nada.
+                Text(
+                    text = "Error: Nombre de receta duplicado o campos vacíos.",
+                    color = Color.Red,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(bottom = 8.dp)
+                )
+            }
+
+            Button( //Botón para agregar receta
                 onClick = {
                     val name = inputName.value.text
                     val imageUrl = inputImageURL.value.toString()
 
-                    if (name.isNotBlank() && imageUrl.isNotBlank()) {
+                    if (name.isNotBlank() && imageUrl.isNotBlank() && !recipeList.any { it.name == name }) { //Validación para verificar que no se duplique el nombre ni hayan campos vacíos.
                         recipeList.add(Recipe(name, imageUrl))
+                        showError.value=false // Si la validación es correcta, se añade el nombre y el url a la lista de las recetas
+                    }else{
+                        showError.value=true // De lo contrario mostrará error en pantalla
                     }
                     inputName.value = TextFieldValue("")
                     inputImageURL.value = TextFieldValue("")
                 },
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(bottom = 16.dp),
+                    .padding(bottom = 20.dp),
                 content={
                     Text("Agregar nueva receta")
                 }
@@ -90,7 +124,9 @@ class MainActivity : ComponentActivity() {
 
             LazyColumn {
                 items(recipeList.toMutableList() ){ recipe ->
-                    RecipeCard(recipe)
+                    RecipeCard(recipe){
+                        recipeList.remove(recipe) //Formato para mostrar las recetas de manera vertical
+                    }
                 }
             }
         }
@@ -99,7 +135,7 @@ class MainActivity : ComponentActivity() {
     data class Recipe(val name: String, val imageUrl: String)
 
     @Composable
-    fun RecipeCard(recipe: Recipe) {
+    fun RecipeCard(recipe: Recipe, onDelete: () -> Unit) { //Card para mostrar las recetas individualmente
         Card(
             modifier = Modifier
                 .fillMaxWidth()
@@ -111,26 +147,40 @@ class MainActivity : ComponentActivity() {
                     .fillMaxWidth()
                     .padding(8.dp)
                     ){
-
+                val imagePainter= rememberAsyncImagePainter(recipe.imageUrl)
                 Image(
-                    painter= rememberAsyncImagePainter(recipe.imageUrl),
+                    painter= imagePainter,
                     contentDescription="Recipe Image",
                     modifier= Modifier
                         .fillMaxWidth()
                         .height(150.dp)
-                        .padding(bottom=8.dp),
+                        .padding(bottom = 8.dp),
                         contentScale= ContentScale.Crop
                 )
+
                 Text(
                     text = recipe.name,
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(8.dp),
                     style = TextStyle(
-                        fontSize = 16.sp,
-                        fontWeight = FontWeight.Bold
+                        fontSize = 18.sp,
+                        fontWeight = FontWeight.Bold,
+                        color= Color(android.graphics.Color.parseColor("#1C2135"))
                     )
                 )
+
+                Button(
+                    onClick = onDelete,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(bottom = 8.dp),
+                    content = {
+                        Text("Eliminar receta")
+                    }
+                )
+
+
             }
         }
     }
@@ -139,6 +189,5 @@ class MainActivity : ComponentActivity() {
     @Composable
     fun MainScreenPreview(){
         MainScreen()
-
     }
 }
