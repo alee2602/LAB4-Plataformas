@@ -1,10 +1,12 @@
 //Universidad del Valle de Guatemala
 //Programación de Plataformas Móviles
+//Laboratorio 4
 //Sección 20
 //Mónica Salvatierra -22249
 
 package com.example.lab4ms
 
+import android.net.Uri
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -48,6 +50,7 @@ class MainActivity : ComponentActivity() {
         val inputName = remember { mutableStateOf(TextFieldValue()) } // input para el nombre de la receta
         val inputImageURL= remember { mutableStateOf(TextFieldValue()) } // input para el url
         val showError = remember { mutableStateOf(false) } // Validación para mostrar error
+        val urlError= remember {mutableStateOf(false)}
 
         Column(
             modifier= Modifier
@@ -56,9 +59,9 @@ class MainActivity : ComponentActivity() {
                 .background(color = Color(android.graphics.Color.parseColor("#463C52")))
         ){
             Text( //Añade un título
-                text = "  Recetario  ",
+                text = "     Recetario  ",
                 style = TextStyle(
-                    fontSize = 40.sp,
+                    fontSize = 52.sp,
                     fontWeight = FontWeight.Bold,
                     fontFamily= FontFamily.Serif,
                     color=Color.White
@@ -87,9 +90,7 @@ class MainActivity : ComponentActivity() {
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(bottom = 8.dp)
-
             )
-
             if (showError.value) { // showError cuando se duplique el nombre de la receta o el usuario no haya puesto nada.
                 Text(
                     text = "Error: Nombre de receta duplicado o campos vacíos.",
@@ -100,16 +101,37 @@ class MainActivity : ComponentActivity() {
                 )
             }
 
+            if (urlError.value) { // showError cuando se duplique el nombre de la receta o el usuario no haya puesto nada.
+                Text(
+                    text = "Error: Formato de URL incorrecto.",
+                    color = Color.Red,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(bottom = 8.dp)
+                )
+            }
+
             Button( //Botón para agregar receta
                 onClick = {
                     val name = inputName.value.text
-                    val imageUrl = inputImageURL.value.toString()
+                    val imageUrl = inputImageURL.value.text
 
                     if (name.isNotBlank() && imageUrl.isNotBlank() && !recipeList.any { it.name == name }) { //Validación para verificar que no se duplique el nombre ni hayan campos vacíos.
-                        recipeList.add(Recipe(name, imageUrl))
-                        showError.value=false // Si la validación es correcta, se añade el nombre y el url a la lista de las recetas
+                        val uri = try { //Validación para que en el campo de URL solo se puedanponer URLS
+                            Uri.parse(imageUrl)
+                        } catch (e: Exception) { //Tira un error de tipo Exception indicando que no es válido
+                            null
+                        }
+                        if (uri != null && "https" == uri.scheme) { //Si el campo de url no es null y tiene el formato http
+                            recipeList.add(Recipe(name, imageUrl)) //Se agrega el nombre de la receta y la imagen a la lista de recetas
+                            urlError.value=false //Si la validación es correcta, se e añade el nombre y el url a la lista de las recetas
+                            showError.value=false // Si la validación es correcta, se añade el nombre y el url a la lista de las recetas
+                        }else{
+                            urlError.value=true
+                        }
                     }else{
                         showError.value=true // De lo contrario mostrará error en pantalla
+                        urlError.value=true //De lo contrario mostrará error en pantalla
                     }
                     inputName.value = TextFieldValue("")
                     inputImageURL.value = TextFieldValue("")
@@ -179,8 +201,6 @@ class MainActivity : ComponentActivity() {
                         Text("Eliminar receta")
                     }
                 )
-
-
             }
         }
     }
