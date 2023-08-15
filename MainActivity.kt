@@ -49,8 +49,8 @@ class MainActivity : ComponentActivity() {
         val recipeList = remember { mutableStateListOf<Recipe>() } //Lista que contiene las recetas
         val inputName = remember { mutableStateOf(TextFieldValue()) } // input para el nombre de la receta
         val inputImageURL= remember { mutableStateOf(TextFieldValue()) } // input para el url
-        val showError = remember { mutableStateOf(false) } // Validación para mostrar error
-        val urlError= remember {mutableStateOf(false)}
+        val showError = remember { mutableStateOf(false) } // Validación para mostrar error tanto en el nombre como en el ur
+        val urlError= remember {mutableStateOf(false)} //Validación para mostrar error en el url
 
         Column(
             modifier= Modifier
@@ -101,7 +101,7 @@ class MainActivity : ComponentActivity() {
                 )
             }
 
-            if (urlError.value) { // showError cuando se duplique el nombre de la receta o el usuario no haya puesto nada.
+            if (urlError.value) { // urlError cuando no se coloque el formato solicitado (URL)
                 Text(
                     text = "Error: Formato de URL incorrecto.",
                     color = Color.Red,
@@ -122,7 +122,7 @@ class MainActivity : ComponentActivity() {
                         } catch (e: Exception) { //Tira un error de tipo Exception indicando que no es válido
                             null
                         }
-                        if (uri != null && "https" == uri.scheme) { //Si el campo de url no es null y tiene el formato http
+                        if (uri != null && "https" == uri.scheme) { //Si el campo del url no es null y tiene el formato https
                             recipeList.add(Recipe(name, imageUrl)) //Se agrega el nombre de la receta y la imagen a la lista de recetas
                             urlError.value=false //Si la validación es correcta, se e añade el nombre y el url a la lista de las recetas
                             showError.value=false // Si la validación es correcta, se añade el nombre y el url a la lista de las recetas
@@ -144,7 +144,7 @@ class MainActivity : ComponentActivity() {
                 }
             )
 
-            LazyColumn {
+            LazyColumn { //Agrega las recetas, de manera que se puedan ver si el usuario hace scroll en el celular
                 items(recipeList.toMutableList() ){ recipe ->
                     RecipeCard(recipe){
                         recipeList.remove(recipe) //Formato para mostrar las recetas de manera vertical
@@ -154,7 +154,7 @@ class MainActivity : ComponentActivity() {
         }
     }
 
-    data class Recipe(val name: String, val imageUrl: String)
+    data class Recipe(val name: String, val imageUrl: String) //Data class que contiene el nombre de la receta y el url de la imagen
 
     @Composable
     fun RecipeCard(recipe: Recipe, onDelete: () -> Unit) { //Card para mostrar las recetas individualmente
@@ -169,7 +169,7 @@ class MainActivity : ComponentActivity() {
                     .fillMaxWidth()
                     .padding(8.dp)
                     ){
-                val imagePainter= rememberAsyncImagePainter(recipe.imageUrl)
+                val imagePainter= rememberAsyncImagePainter(recipe.imageUrl) //Utiliza la librería Coil para cargar las imágenes
                 Image(
                     painter= imagePainter,
                     contentDescription="Recipe Image",
@@ -192,7 +192,7 @@ class MainActivity : ComponentActivity() {
                     )
                 )
 
-                Button(
+                Button( //Botón para eliminar la receta 
                     onClick = onDelete,
                     modifier = Modifier
                         .fillMaxWidth()
@@ -205,7 +205,7 @@ class MainActivity : ComponentActivity() {
         }
     }
 
-    @Preview(showBackground = true)
+    @Preview(showBackground = true) //Preview
     @Composable
     fun MainScreenPreview(){
         MainScreen()
