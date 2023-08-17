@@ -154,7 +154,7 @@ class MainActivity : ComponentActivity() {
         }
     }
 
-    data class Recipe(val name: String, val imageUrl: String) //Data class que contiene el nombre de la receta y el url de la imagen
+    data class Recipe(val name: String, val imageUrl: String) //Clase que contiene el nombre de la receta y el url de la imagen
 
     @Composable
     fun RecipeCard(recipe: Recipe, onDelete: () -> Unit) { //Card para mostrar las recetas individualmente
